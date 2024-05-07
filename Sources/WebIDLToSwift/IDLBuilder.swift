@@ -103,7 +103,7 @@ enum IDLBuilder {
         return """
             @usableFromInline enum Strings {
                 @usableFromInline static let _self: JSString = "self"
-                \(lines: strings.map { "@usableFromInline static let `\(raw: $0)`: JSString = \(quoted: $0)" })
+                \(lines: strings.map { "@usableFromInline static let `\(convertToValidName: $0)`: JSString = \(quoted: $0)" })
             }
         """
     }

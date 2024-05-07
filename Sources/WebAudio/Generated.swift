@@ -368,11 +368,12 @@ public enum AudioContextLatencyCategory: JSString, JSValueCompatible {
 }
 
 public class AudioContextOptions: BridgedDictionary {
-    public convenience init(latencyHint: AudioContextLatencyCategory_or_Double, sampleRate: Float, sinkId: AudioSinkOptions_or_String) {
+    public convenience init(latencyHint: AudioContextLatencyCategory_or_Double, sampleRate: Float, sinkId: AudioSinkOptions_or_String, renderSizeHint: AudioContextRenderSizeCategory_or_UInt32) {
         let object = JSObject.global[Strings.Object].function!.new()
         object[Strings.latencyHint] = _toJSValue(latencyHint)
         object[Strings.sampleRate] = _toJSValue(sampleRate)
         object[Strings.sinkId] = _toJSValue(sinkId)
+        object[Strings.renderSizeHint] = _toJSValue(renderSizeHint)
         self.init(unsafelyWrapping: object)
     }
 
@@ -380,6 +381,7 @@ public class AudioContextOptions: BridgedDictionary {
         _latencyHint = ReadWriteAttribute(jsObject: object, name: Strings.latencyHint)
         _sampleRate = ReadWriteAttribute(jsObject: object, name: Strings.sampleRate)
         _sinkId = ReadWriteAttribute(jsObject: object, name: Strings.sinkId)
+        _renderSizeHint = ReadWriteAttribute(jsObject: object, name: Strings.renderSizeHint)
         super.init(unsafelyWrapping: object)
     }
 
@@ -391,6 +393,27 @@ public class AudioContextOptions: BridgedDictionary {
 
     @ReadWriteAttribute
     public var sinkId: AudioSinkOptions_or_String
+
+    @ReadWriteAttribute
+    public var renderSizeHint: AudioContextRenderSizeCategory_or_UInt32
+}
+
+public enum AudioContextRenderSizeCategory: JSString, JSValueCompatible {
+    case `default` = "default"
+    case hardware = "hardware"
+
+    @inlinable public static func construct(from jsValue: JSValue) -> Self? {
+        if let string = jsValue.jsString {
+            return Self(rawValue: string)
+        }
+        return nil
+    }
+
+    @inlinable public init?(string: String) {
+        self.init(rawValue: JSString(string))
+    }
+
+    @inlinable public var jsValue: JSValue { rawValue.jsValue }
 }
 
 public enum AudioContextState: JSString, JSValueCompatible {
@@ -1032,6 +1055,7 @@ public class BaseAudioContext: EventTarget {
         _currentTime = ReadonlyAttribute(jsObject: jsObject, name: Strings.currentTime)
         _listener = ReadonlyAttribute(jsObject: jsObject, name: Strings.listener)
         _state = ReadonlyAttribute(jsObject: jsObject, name: Strings.state)
+        _renderQuantumSize = ReadonlyAttribute(jsObject: jsObject, name: Strings.renderQuantumSize)
         _audioWorklet = ReadonlyAttribute(jsObject: jsObject, name: Strings.audioWorklet)
         _onstatechange = ClosureAttribute1Optional(jsObject: jsObject, name: Strings.onstatechange)
         super.init(unsafelyWrapping: jsObject)
@@ -1051,6 +1075,9 @@ public class BaseAudioContext: EventTarget {
 
     @ReadonlyAttribute
     public var state: AudioContextState
+
+    @ReadonlyAttribute
+    public var renderQuantumSize: UInt32
 
     @ReadonlyAttribute
     public var audioWorklet: AudioWorklet
@@ -1823,11 +1850,12 @@ public class OfflineAudioContext: BaseAudioContext {
 }
 
 public class OfflineAudioContextOptions: BridgedDictionary {
-    public convenience init(numberOfChannels: UInt32, length: UInt32, sampleRate: Float) {
+    public convenience init(numberOfChannels: UInt32, length: UInt32, sampleRate: Float, renderSizeHint: AudioContextRenderSizeCategory_or_UInt32) {
         let object = JSObject.global[Strings.Object].function!.new()
         object[Strings.numberOfChannels] = _toJSValue(numberOfChannels)
         object[Strings.length] = _toJSValue(length)
         object[Strings.sampleRate] = _toJSValue(sampleRate)
+        object[Strings.renderSizeHint] = _toJSValue(renderSizeHint)
         self.init(unsafelyWrapping: object)
     }
 
@@ -1835,6 +1863,7 @@ public class OfflineAudioContextOptions: BridgedDictionary {
         _numberOfChannels = ReadWriteAttribute(jsObject: object, name: Strings.numberOfChannels)
         _length = ReadWriteAttribute(jsObject: object, name: Strings.length)
         _sampleRate = ReadWriteAttribute(jsObject: object, name: Strings.sampleRate)
+        _renderSizeHint = ReadWriteAttribute(jsObject: object, name: Strings.renderSizeHint)
         super.init(unsafelyWrapping: object)
     }
 
@@ -1846,6 +1875,9 @@ public class OfflineAudioContextOptions: BridgedDictionary {
 
     @ReadWriteAttribute
     public var sampleRate: Float
+
+    @ReadWriteAttribute
+    public var renderSizeHint: AudioContextRenderSizeCategory_or_UInt32
 }
 
 public class OscillatorNode: AudioScheduledSourceNode {
@@ -2441,6 +2473,8 @@ public class WaveShaperOptions: BridgedDictionary {
     @usableFromInline static let refDistance: JSString = "refDistance"
     @usableFromInline static let release: JSString = "release"
     @usableFromInline static let renderCapacity: JSString = "renderCapacity"
+    @usableFromInline static let renderQuantumSize: JSString = "renderQuantumSize"
+    @usableFromInline static let renderSizeHint: JSString = "renderSizeHint"
     @usableFromInline static let renderedBuffer: JSString = "renderedBuffer"
     @usableFromInline static let resume: JSString = "resume"
     @usableFromInline static let rolloffFactor: JSString = "rolloffFactor"
@@ -2520,6 +2554,58 @@ public enum AudioContextLatencyCategory_or_Double: JSValueCompatible, Any_AudioC
             return audioContextLatencyCategory.jsValue
         case let .double(double):
             return double.jsValue
+        }
+    }
+}
+
+public protocol Any_AudioContextRenderSizeCategory_or_UInt32: ConvertibleToJSValue {}
+extension AudioContextRenderSizeCategory: Any_AudioContextRenderSizeCategory_or_UInt32 {}
+extension UInt32: Any_AudioContextRenderSizeCategory_or_UInt32 {}
+
+public enum AudioContextRenderSizeCategory_or_UInt32: JSValueCompatible, Any_AudioContextRenderSizeCategory_or_UInt32 {
+    case audioContextRenderSizeCategory(AudioContextRenderSizeCategory)
+    case uInt32(UInt32)
+
+    init(_ audioContextRenderSizeCategory: AudioContextRenderSizeCategory) {
+        let val: AudioContextRenderSizeCategory_or_UInt32 = .audioContextRenderSizeCategory(audioContextRenderSizeCategory)
+        self = val
+    }
+
+    init(_ uInt32: UInt32) {
+        let val: AudioContextRenderSizeCategory_or_UInt32 = .uInt32(uInt32)
+        self = val
+    }
+
+    public var audioContextRenderSizeCategory: AudioContextRenderSizeCategory? {
+        switch self {
+        case let .audioContextRenderSizeCategory(audioContextRenderSizeCategory): return audioContextRenderSizeCategory
+        default: return nil
+        }
+    }
+
+    public var uInt32: UInt32? {
+        switch self {
+        case let .uInt32(uInt32): return uInt32
+        default: return nil
+        }
+    }
+
+    public static func construct(from value: JSValue) -> Self? {
+        if let audioContextRenderSizeCategory: AudioContextRenderSizeCategory = value.fromJSValue() {
+            return .audioContextRenderSizeCategory(audioContextRenderSizeCategory)
+        }
+        if let uInt32: UInt32 = value.fromJSValue() {
+            return .uInt32(uInt32)
+        }
+        return nil
+    }
+
+    public var jsValue: JSValue {
+        switch self {
+        case let .audioContextRenderSizeCategory(audioContextRenderSizeCategory):
+            return audioContextRenderSizeCategory.jsValue
+        case let .uInt32(uInt32):
+            return uInt32.jsValue
         }
     }
 }

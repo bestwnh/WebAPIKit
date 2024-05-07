@@ -1,6 +1,6 @@
 --- a/Sources/CSSOM/Generated.swift
 +++ b/Sources/CSSOM/Generated.swift
-@@ -379,7 +379,8 @@ public class CSSColorValue: CSSStyleValue {
+@@ -405,7 +405,8 @@ public class CSSColorValue: CSSStyleValue {
          super.init(unsafelyWrapping: jsObject)
      }
 
@@ -10,7 +10,7 @@
          let this = constructor!
          return this[Strings.parse].function!(this: this, arguments: [_toJSValue(cssText)]).fromJSValue()!
      }
-@@ -944,7 +945,7 @@ public class CSSNumericValue: CSSStyleValue {
+@@ -970,7 +971,7 @@ public class CSSNumericValue: CSSStyleValue {
          return this[Strings.type].function!(this: this, arguments: []).fromJSValue()!
      }
 
@@ -19,7 +19,7 @@
          let this = constructor!
          return this[Strings.parse].function!(this: this, arguments: [_toJSValue(cssText)]).fromJSValue()!
      }
-@@ -1974,9 +1975,10 @@ public class StylePropertyMapReadOnly: JSBridgedClass, Sequence {
+@@ -2087,9 +2088,10 @@ public class StylePropertyMapReadOnly: JSBridgedClass, Sequence {
          ValueIterableIterator(sequence: self)
      }
 
@@ -32,7 +32,7 @@
      }
 
      @inlinable public func getAll(property: String) -> [CSSStyleValue] {
-@@ -2646,58 +2648,6 @@ public enum CSSStyleValue_or_String: JSValueCompatible, Any_CSSStyleValue_or_Str
+@@ -2780,58 +2782,6 @@ public enum CSSStyleValue_or_String: JSValueCompatible, Any_CSSStyleValue_or_Str
      }
  }
 

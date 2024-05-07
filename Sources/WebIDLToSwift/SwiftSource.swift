@@ -37,6 +37,10 @@ struct SwiftSource: CustomStringConvertible, ExpressibleByStringInterpolation, E
         mutating func appendInterpolation(raw value: String) {
             output += value
         }
+        
+        mutating func appendInterpolation(convertToValidName value: String) {
+            output += value.replacingOccurrences(of: "-", with: "_")
+        }
 
         mutating func appendInterpolation(quoted value: String) {
             output += "\"\(value)\""

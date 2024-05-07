@@ -13,7 +13,7 @@ enum ModuleState {
             return "Strings._self"
         }
         strings.insert(name)
-        return "Strings.\(name)"
+        return "Strings.\(convertToValidName: name)"
     }
 
     private static var stack: [ScopedState] = []

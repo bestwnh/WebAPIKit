@@ -42,6 +42,9 @@ let domModule = Module(
         "performance-timeline",
         "permissions",
         "mathml-core",
+        "trusted-types",
+        "css-view-transitions",
+        "urlpattern",
     ],
     dependencies: ["WebAPIBase"]
 )

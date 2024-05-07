@@ -2,6 +2,7 @@
 
 import DOM
 import ECMAScript
+import JavaScriptBigIntSupport
 import JavaScriptEventLoop
 import JavaScriptKit
 import WebAPIBase
@@ -19,11 +20,11 @@ public class Gamepad: JSBridgedClass {
         _mapping = ReadonlyAttribute(jsObject: jsObject, name: Strings.mapping)
         _axes = ReadonlyAttribute(jsObject: jsObject, name: Strings.axes)
         _buttons = ReadonlyAttribute(jsObject: jsObject, name: Strings.buttons)
+        _vibrationActuator = ReadonlyAttribute(jsObject: jsObject, name: Strings.vibrationActuator)
         _hand = ReadonlyAttribute(jsObject: jsObject, name: Strings.hand)
         _hapticActuators = ReadonlyAttribute(jsObject: jsObject, name: Strings.hapticActuators)
         _pose = ReadonlyAttribute(jsObject: jsObject, name: Strings.pose)
         _touchEvents = ReadonlyAttribute(jsObject: jsObject, name: Strings.touchEvents)
-        _vibrationActuator = ReadonlyAttribute(jsObject: jsObject, name: Strings.vibrationActuator)
         self.jsObject = jsObject
     }
 
@@ -49,6 +50,9 @@ public class Gamepad: JSBridgedClass {
     public var buttons: [GamepadButton]
 
     @ReadonlyAttribute
+    public var vibrationActuator: GamepadHapticActuator
+
+    @ReadonlyAttribute
     public var hand: GamepadHand
 
     @ReadonlyAttribute
@@ -59,9 +63,6 @@ public class Gamepad: JSBridgedClass {
 
     @ReadonlyAttribute
     public var touchEvents: [GamepadTouch]?
-
-    @ReadonlyAttribute
-    public var vibrationActuator: GamepadHapticActuator?
 }
 
 public class GamepadButton: JSBridgedClass {
@@ -87,12 +88,14 @@ public class GamepadButton: JSBridgedClass {
 }
 
 public class GamepadEffectParameters: BridgedDictionary {
-    public convenience init(duration: Double, startDelay: Double, strongMagnitude: Double, weakMagnitude: Double) {
+    public convenience init(duration: UInt64, startDelay: UInt64, strongMagnitude: Double, weakMagnitude: Double, leftTrigger: Double, rightTrigger: Double) {
         let object = JSObject.global[Strings.Object].function!.new()
         object[Strings.duration] = _toJSValue(duration)
         object[Strings.startDelay] = _toJSValue(startDelay)
         object[Strings.strongMagnitude] = _toJSValue(strongMagnitude)
         object[Strings.weakMagnitude] = _toJSValue(weakMagnitude)
+        object[Strings.leftTrigger] = _toJSValue(leftTrigger)
+        object[Strings.rightTrigger] = _toJSValue(rightTrigger)
         self.init(unsafelyWrapping: object)
     }
 
@@ -101,20 +104,28 @@ public class GamepadEffectParameters: BridgedDictionary {
         _startDelay = ReadWriteAttribute(jsObject: object, name: Strings.startDelay)
         _strongMagnitude = ReadWriteAttribute(jsObject: object, name: Strings.strongMagnitude)
         _weakMagnitude = ReadWriteAttribute(jsObject: object, name: Strings.weakMagnitude)
+        _leftTrigger = ReadWriteAttribute(jsObject: object, name: Strings.leftTrigger)
+        _rightTrigger = ReadWriteAttribute(jsObject: object, name: Strings.rightTrigger)
         super.init(unsafelyWrapping: object)
     }
 
     @ReadWriteAttribute
-    public var duration: Double
+    public var duration: UInt64
 
     @ReadWriteAttribute
-    public var startDelay: Double
+    public var startDelay: UInt64
 
     @ReadWriteAttribute
     public var strongMagnitude: Double
 
     @ReadWriteAttribute
     public var weakMagnitude: Double
+
+    @ReadWriteAttribute
+    public var leftTrigger: Double
+
+    @ReadWriteAttribute
+    public var rightTrigger: Double
 }
 
 public class GamepadEvent: Event {
@@ -174,17 +185,12 @@ public class GamepadHapticActuator: JSBridgedClass {
     public let jsObject: JSObject
 
     public required init(unsafelyWrapping jsObject: JSObject) {
-        _type = ReadonlyAttribute(jsObject: jsObject, name: Strings.type)
+        _effects = ReadonlyAttribute(jsObject: jsObject, name: Strings.effects)
         self.jsObject = jsObject
     }
 
     @ReadonlyAttribute
-    public var type: GamepadHapticActuatorType
-
-    @inlinable public func canPlayEffectType(type: GamepadHapticEffectType) -> Bool {
-        let this = jsObject
-        return this[Strings.canPlayEffectType].function!(this: this, arguments: [_toJSValue(type)]).fromJSValue()!
-    }
+    public var effects: [GamepadHapticEffectType]
 
     @inlinable public func playEffect(type: GamepadHapticEffectType, params: GamepadEffectParameters? = nil) -> JSPromise {
         let this = jsObject
@@ -195,18 +201,6 @@ public class GamepadHapticActuator: JSBridgedClass {
     @inlinable public func playEffect(type: GamepadHapticEffectType, params: GamepadEffectParameters? = nil) async throws -> GamepadHapticsResult {
         let this = jsObject
         let _promise: JSPromise = this[Strings.playEffect].function!(this: this, arguments: [_toJSValue(type), _toJSValue(params)]).fromJSValue()!
-        return try await _promise.value.fromJSValue()!
-    }
-
-    @inlinable public func pulse(value: Double, duration: Double) -> JSPromise {
-        let this = jsObject
-        return this[Strings.pulse].function!(this: this, arguments: [_toJSValue(value), _toJSValue(duration)]).fromJSValue()!
-    }
-
-    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
-    @inlinable public func pulse(value: Double, duration: Double) async throws -> Bool {
-        let this = jsObject
-        let _promise: JSPromise = this[Strings.pulse].function!(this: this, arguments: [_toJSValue(value), _toJSValue(duration)]).fromJSValue()!
         return try await _promise.value.fromJSValue()!
     }
 
@@ -221,28 +215,23 @@ public class GamepadHapticActuator: JSBridgedClass {
         let _promise: JSPromise = this[Strings.reset].function!(this: this, arguments: []).fromJSValue()!
         return try await _promise.value.fromJSValue()!
     }
-}
 
-public enum GamepadHapticActuatorType: JSString, JSValueCompatible {
-    case vibration = "vibration"
-    case dualRumble = "dual-rumble"
-
-    @inlinable public static func construct(from jsValue: JSValue) -> Self? {
-        if let string = jsValue.jsString {
-            return Self(rawValue: string)
-        }
-        return nil
+    @inlinable public func pulse(value: Double, duration: Double) -> JSPromise {
+        let this = jsObject
+        return this[Strings.pulse].function!(this: this, arguments: [_toJSValue(value), _toJSValue(duration)]).fromJSValue()!
     }
 
-    @inlinable public init?(string: String) {
-        self.init(rawValue: JSString(string))
+    @available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0, *)
+    @inlinable public func pulse(value: Double, duration: Double) async throws -> Bool {
+        let this = jsObject
+        let _promise: JSPromise = this[Strings.pulse].function!(this: this, arguments: [_toJSValue(value), _toJSValue(duration)]).fromJSValue()!
+        return try await _promise.value.fromJSValue()!
     }
-
-    @inlinable public var jsValue: JSValue { rawValue.jsValue }
 }
 
 public enum GamepadHapticEffectType: JSString, JSValueCompatible {
     case dualRumble = "dual-rumble"
+    case triggerRumble = "trigger-rumble"
 
     @inlinable public static func construct(from jsValue: JSValue) -> Self? {
         if let string = jsValue.jsString {
@@ -396,9 +385,9 @@ public extension WindowEventHandlers {
     @usableFromInline static let angularVelocity: JSString = "angularVelocity"
     @usableFromInline static let axes: JSString = "axes"
     @usableFromInline static let buttons: JSString = "buttons"
-    @usableFromInline static let canPlayEffectType: JSString = "canPlayEffectType"
     @usableFromInline static let connected: JSString = "connected"
     @usableFromInline static let duration: JSString = "duration"
+    @usableFromInline static let effects: JSString = "effects"
     @usableFromInline static let gamepad: JSString = "gamepad"
     @usableFromInline static let getGamepads: JSString = "getGamepads"
     @usableFromInline static let hand: JSString = "hand"
@@ -407,6 +396,7 @@ public extension WindowEventHandlers {
     @usableFromInline static let hasPosition: JSString = "hasPosition"
     @usableFromInline static let id: JSString = "id"
     @usableFromInline static let index: JSString = "index"
+    @usableFromInline static let leftTrigger: JSString = "leftTrigger"
     @usableFromInline static let linearAcceleration: JSString = "linearAcceleration"
     @usableFromInline static let linearVelocity: JSString = "linearVelocity"
     @usableFromInline static let mapping: JSString = "mapping"
@@ -419,6 +409,7 @@ public extension WindowEventHandlers {
     @usableFromInline static let pressed: JSString = "pressed"
     @usableFromInline static let pulse: JSString = "pulse"
     @usableFromInline static let reset: JSString = "reset"
+    @usableFromInline static let rightTrigger: JSString = "rightTrigger"
     @usableFromInline static let startDelay: JSString = "startDelay"
     @usableFromInline static let strongMagnitude: JSString = "strongMagnitude"
     @usableFromInline static let surfaceDimensions: JSString = "surfaceDimensions"
@@ -428,7 +419,6 @@ public extension WindowEventHandlers {
     @usableFromInline static let touchEvents: JSString = "touchEvents"
     @usableFromInline static let touchId: JSString = "touchId"
     @usableFromInline static let touched: JSString = "touched"
-    @usableFromInline static let type: JSString = "type"
     @usableFromInline static let value: JSString = "value"
     @usableFromInline static let vibrationActuator: JSString = "vibrationActuator"
     @usableFromInline static let weakMagnitude: JSString = "weakMagnitude"

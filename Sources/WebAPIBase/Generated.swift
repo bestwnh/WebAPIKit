@@ -106,6 +106,11 @@ public class URL: JSBridgedClass {
         self.init(unsafelyWrapping: Self.constructor!.new(arguments: [_toJSValue(url), _toJSValue(base)]))
     }
 
+    @inlinable public class func parse(url: String, base: String? = nil) -> URL? {
+        let this = constructor!
+        return this[Strings.parse].function!(this: this, arguments: [_toJSValue(url), _toJSValue(base)]).fromJSValue()
+    }
+
     @inlinable public class func canParse(url: String, base: String? = nil) -> Bool {
         let this = constructor!
         return this[Strings.canParse].function!(this: this, arguments: [_toJSValue(url), _toJSValue(base)]).fromJSValue()!
@@ -349,6 +354,7 @@ public enum console {
     @usableFromInline static let message: JSString = "message"
     @usableFromInline static let name: JSString = "name"
     @usableFromInline static let origin: JSString = "origin"
+    @usableFromInline static let parse: JSString = "parse"
     @usableFromInline static let password: JSString = "password"
     @usableFromInline static let pathname: JSString = "pathname"
     @usableFromInline static let port: JSString = "port"

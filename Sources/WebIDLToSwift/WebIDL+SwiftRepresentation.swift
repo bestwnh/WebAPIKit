@@ -25,13 +25,16 @@ extension IDLArgument: SwiftRepresentable {
 
 extension IDLAttribute: SwiftRepresentable, Initializable {
     private var wrapperName: SwiftSource {
-        "_\(raw: name)"
+        "_\(raw: processedName)"
+    }
+    private var processedName: String {
+        SwiftSource("\(convertToValidName: name)").source
     }
 
     var swiftRepresentation: SwiftSource {
-        if ModuleState.ignored[ModuleState.className.source]?.contains(name) ?? false {
+        if ModuleState.ignored[ModuleState.className.source]?.contains(processedName) ?? false {
             return """
-            // XXX: attribute '\(name)' is ignored
+            // XXX: attribute '\(processedName)' is ignored
             """
         }
         if ModuleState.override {
@@ -39,7 +42,7 @@ extension IDLAttribute: SwiftRepresentable, Initializable {
             // can't do property wrappers on override declarations
             return """
             @usableFromInline let \(wrapperName): \(idlType.propertyWrapper(readonly: readonly))<\(idlType)>
-            @inlinable override public var \(name): \(idlType) {
+            @inlinable override public var \(processedName): \(idlType) {
                 get { \(wrapperName).wrappedValue }
                 \(readonly ? "" : "set { \(wrapperName).wrappedValue = newValue }")
             }
@@ -49,25 +52,25 @@ extension IDLAttribute: SwiftRepresentable, Initializable {
             let propertyWrapper = idlType.propertyWrapper(readonly: readonly)
             if [SwiftSource.readOnlyAttribute, .readWriteAttribute].contains(propertyWrapper) {
                 let setter: SwiftSource = """
-                nonmutating set { jsObject[\(ModuleState.source(for: name))] = _toJSValue(newValue) }
+                nonmutating set { jsObject[\(ModuleState.source(for: processedName))] = _toJSValue(newValue) }
                 """
 
                 return """
-                @inlinable public\(raw: ModuleState.static ? " static" : "") var \(name): \(idlType) {
-                    get { jsObject[\(ModuleState.source(for: name))]\(idlType.fromJSValue) }
+                @inlinable public\(raw: ModuleState.static ? " static" : "") var \(processedName): \(idlType) {
+                    get { jsObject[\(ModuleState.source(for: processedName))]\(idlType.fromJSValue) }
                     \(readonly ? "" : setter)
                 }
                 """
             } else {
                 let setter: SwiftSource = """
                 nonmutating set { \(
-                    idlType.propertyWrapper(readonly: readonly))[\(ModuleState.source(for: name)
+                    idlType.propertyWrapper(readonly: readonly))[\(ModuleState.source(for: processedName)
                 ), in: jsObject] = newValue }
                 """
 
                 return """
-                @inlinable public\(raw: ModuleState.static ? " static" : "") var \(name): \(idlType) {
-                    get { \(idlType.propertyWrapper(readonly: readonly))[\(ModuleState.source(for: name)), in: jsObject] }
+                @inlinable public\(raw: ModuleState.static ? " static" : "") var \(processedName): \(idlType) {
+                    get { \(idlType.propertyWrapper(readonly: readonly))[\(ModuleState.source(for: processedName)), in: jsObject] }
                     \(readonly ? "" : setter)
                 }
                 """
@@ -75,7 +78,7 @@ extension IDLAttribute: SwiftRepresentable, Initializable {
         } else {
             return """
             @\(idlType.propertyWrapper(readonly: readonly))
-            public var \(name): \(idlType)
+            public var \(processedName): \(idlType)
             """
         }
     }

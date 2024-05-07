@@ -155,8 +155,12 @@ open class WebGLObject: JSBridgedClass {
     public let jsObject: JSObject
 
     public required init(unsafelyWrapping jsObject: JSObject) {
+        _label = ReadWriteAttribute(jsObject: jsObject, name: Strings.label)
         self.jsObject = jsObject
     }
+
+    @ReadWriteAttribute
+    public var label: String
 }
 
 public enum WebGLPowerPreference: JSString, JSValueCompatible {
@@ -726,6 +730,8 @@ public extension WebGLRenderingContextBase {
 
     @inlinable static var RGB5_A1: GLenum { 0x8057 }
 
+    @inlinable static var RGBA8: GLenum { 0x8058 }
+
     @inlinable static var RGB565: GLenum { 0x8D62 }
 
     @inlinable static var DEPTH_COMPONENT16: GLenum { 0x81A5 }
@@ -804,6 +810,8 @@ public extension WebGLRenderingContextBase {
 
     @inlinable var drawingBufferHeight: GLsizei { jsObject[Strings.drawingBufferHeight].fromJSValue()! }
 
+    @inlinable var drawingBufferFormat: GLenum { jsObject[Strings.drawingBufferFormat].fromJSValue()! }
+
     @inlinable var drawingBufferColorSpace: PredefinedColorSpace {
         get { jsObject[Strings.drawingBufferColorSpace].fromJSValue()! }
         nonmutating set { jsObject[Strings.drawingBufferColorSpace] = _toJSValue(newValue) }
@@ -832,6 +840,11 @@ public extension WebGLRenderingContextBase {
     @inlinable func getExtension(name: String) -> JSObject? {
         let this = jsObject
         return this[Strings.getExtension].function!(this: this, arguments: [_toJSValue(name)]).fromJSValue()
+    }
+
+    @inlinable func drawingBufferStorage(sizedFormat: GLenum, width: UInt32, height: UInt32) {
+        let this = jsObject
+        _ = this[Strings.drawingBufferStorage].function!(this: this, arguments: [_toJSValue(sizedFormat), _toJSValue(width), _toJSValue(height)])
     }
 
     @inlinable func activeTexture(texture: GLenum) {
@@ -1628,7 +1641,9 @@ public class WebGLUniformLocation: JSBridgedClass {
     @usableFromInline static let drawArrays: JSString = "drawArrays"
     @usableFromInline static let drawElements: JSString = "drawElements"
     @usableFromInline static let drawingBufferColorSpace: JSString = "drawingBufferColorSpace"
+    @usableFromInline static let drawingBufferFormat: JSString = "drawingBufferFormat"
     @usableFromInline static let drawingBufferHeight: JSString = "drawingBufferHeight"
+    @usableFromInline static let drawingBufferStorage: JSString = "drawingBufferStorage"
     @usableFromInline static let drawingBufferWidth: JSString = "drawingBufferWidth"
     @usableFromInline static let enable: JSString = "enable"
     @usableFromInline static let enableVertexAttribArray: JSString = "enableVertexAttribArray"
@@ -1671,6 +1686,7 @@ public class WebGLUniformLocation: JSBridgedClass {
     @usableFromInline static let isRenderbuffer: JSString = "isRenderbuffer"
     @usableFromInline static let isShader: JSString = "isShader"
     @usableFromInline static let isTexture: JSString = "isTexture"
+    @usableFromInline static let label: JSString = "label"
     @usableFromInline static let lineWidth: JSString = "lineWidth"
     @usableFromInline static let linkProgram: JSString = "linkProgram"
     @usableFromInline static let name: JSString = "name"
