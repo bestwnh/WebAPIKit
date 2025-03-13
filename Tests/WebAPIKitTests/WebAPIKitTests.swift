@@ -1,5 +1,5 @@
 import DOM
-import Foundation
+import FoundationEssentials
 import JavaScriptKit
 import XCTest
 

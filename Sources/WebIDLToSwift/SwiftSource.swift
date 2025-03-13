@@ -1,4 +1,4 @@
-import Foundation
+import FoundationEssentials
 
 struct SwiftSource: CustomStringConvertible, ExpressibleByStringInterpolation, Equatable {
     let source: String

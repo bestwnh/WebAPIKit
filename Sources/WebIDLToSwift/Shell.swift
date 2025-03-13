@@ -1,4 +1,4 @@
-import Foundation
+import FoundationEssentials
 
 enum Shell {
     static func format(source: String) {

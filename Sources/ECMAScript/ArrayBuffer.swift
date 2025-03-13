@@ -106,8 +106,8 @@ public extension JSTypedArray {
     }
 }
 
-#if canImport(Foundation)
-    import Foundation
+#if canImport(FoundationEssentials)
+    import FoundationEssentials
 
     public extension Data {
         init(_ arrayBuffer: ArrayBuffer) {
