@@ -106,20 +106,3 @@ public extension JSTypedArray {
     }
 }
 
-#if canImport(FoundationEssentials)
-    import FoundationEssentials
-
-    public extension Data {
-        init(_ arrayBuffer: ArrayBuffer) {
-            self = JSTypedArray<UInt8>(arrayBuffer).withUnsafeBytes {
-                Data(buffer: $0)
-            }
-        }
-
-        init(_ sharedArrayBuffer: SharedArrayBuffer) {
-            self = JSTypedArray<UInt8>(sharedArrayBuffer).withUnsafeBytes {
-                Data(buffer: $0)
-            }
-        }
-    }
-#endif
